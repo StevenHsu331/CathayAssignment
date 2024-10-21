@@ -1,9 +1,6 @@
-package api.currency;
+package com.cathay.assignment.api.currency;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import java.util.Date;
 
@@ -12,9 +9,13 @@ public class Currency {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Column(name = "name")
     private String name;
+    @Column(name = "ch_name")
     private String chName;
+    @Column(name = "rate")
     private Double rate;
+    @Column(name = "update_time")
     private Date updateTime;
 
     public Integer getId() {

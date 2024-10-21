@@ -1,7 +1,8 @@
 package com.cathay.assignment;
 
-import api.currency.CurrencyRepo;
+import com.cathay.assignment.api.currency.CurrencyRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,7 +10,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import api.currency.Currency;
+import com.cathay.assignment.api.currency.Currency;
+
+import java.util.Date;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -20,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AssignmentApplicationTests {
 
+	private Integer savedId;
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -29,6 +35,21 @@ class AssignmentApplicationTests {
 	@Autowired
 	private CurrencyRepo currencyRepo;
 
+	@BeforeEach
+	public void setup() {
+		currencyRepo.deleteAll();
+
+		Currency mockData = new Currency();
+		mockData.setName("USD");
+		mockData.setChName("美金");
+		mockData.setRate(68180.0701);
+		mockData.setUpdateTime(new Date());
+		Currency savedData = currencyRepo.save(mockData);
+		savedId = savedData.getId();
+
+		System.out.println("Saved Currency ID: " + savedData.getId());
+	}
+
 	@Test
 	public void testGetAll() throws Exception {
 		mockMvc.perform(get("/api/currency/"))
@@ -37,7 +58,7 @@ class AssignmentApplicationTests {
 
 	@Test
 	public void testGet() throws Exception {
-		mockMvc.perform(get("/api/currency/1"))
+		mockMvc.perform(get(String.format("/api/currency/%d", savedId)))
 				.andExpect(status().isOk());
 	}
 
@@ -48,7 +69,7 @@ class AssignmentApplicationTests {
 		mockData.setChName("台幣");
 		mockData.setRate(1d);
 
-		mockMvc.perform(post("/api/currency")
+		mockMvc.perform(post("/api/currency/")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(mockData)))
                 .andExpect(status().isOk());
@@ -56,10 +77,10 @@ class AssignmentApplicationTests {
 
 	@Test
 	public void testUpdate() throws Exception {
-		Currency mockData = currencyRepo.getReferenceById(1);
+		Currency mockData = currencyRepo.findById(savedId).orElse(null);
 		mockData.setChName("美元");
 
-		mockMvc.perform(put("/api/currency")
+		mockMvc.perform(put("/api/currency/")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(mockData)))
 				.andExpect(status().isOk());
@@ -67,7 +88,7 @@ class AssignmentApplicationTests {
 
 	@Test
 	public void testDelete() throws Exception {
-		mockMvc.perform(delete("/api/currency/1"))
+		mockMvc.perform(delete(String.format("/api/currency/%d", savedId)))
 				.andExpect(status().isOk());
 	}
 
